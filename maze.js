@@ -5,20 +5,34 @@ var createArray = function(dim,init){//takes an array of dimensions and the init
 			x[i] = createArray(dim.slice(1),init)
 		return x;
 	}
-	return JSON.parse(JSON.stringify(init));
+	return JSON.parse(JSON.stringify(init));//return copy of object
 }
 
 
 var node = function(row,col){
-	this.col = col;
 	this.row = row;
+	this.col = col;
+}
+
+var Rand = function(num){
+	var prev = [];
+	if(typeof num === 'undefined')
+		num = 4;
+	this.get = function(){
+		if(prev.length==num)
+			return undefined;
+		do{
+			var x = Math.floor(Math.random()*num)
+		}
+		while(prev.indexOf(x)!=-1)
+		prev.push(x);
+		return x;//0: right, 1: down, 2: left, 3: up
+	}
 }
 
 
 var Maze = function(length,width){
-	var genRandom = function(){
-		return Math.floor(Math.random()*4);//0: right, 1: down, 2: left, 3: up
-	}
+
 	
 	this.length = length + 1;
 	this.width = width + 1;
@@ -35,51 +49,46 @@ var Maze = function(length,width){
 	this.walls[0][0].left = false;
 	this.walls[this.width-1][this.length-1].left = false;
 	//console.log(this.walls);
-	var furthest = new node(0,0);
-	var current = new node(0,0);
 	var destination = new node(width-1,length-1);
-	console.log(destination);
 	var nodes = createArray([width,length],0);
-	var validMove = function(move){
-		if(move==0 && ((current.col + 1 >= destination.col && current.row != destination.row) || nodes[current.row][current.col+1]!=0))
-			return false;
-		if(move==1 && ((current.row + 1 >= destination.row && current.col != destination.col)||  typeof nodes[current.row+1] === 'undefined' || nodes[current.row+1][current.col]!=0))
-			return false;
-		if(move==2 && (current.col-1 < 0 || current.row == destination.row || current.row == 0 || nodes[current.row][current.col-1]!=0))
-			return false;
-		if(move==3 && (current.row-1 < 0 || current.col == destination.col || current.col == 0 || nodes[current.row-1][current.col]!=0))
-			return false;
-		return true;
-	}
-	nodes[0][0] = 1;
-	//console.log(nodes);
-	var step = 1;
-	do{
-		var move;
+	var genMap = function(start,end,iter,top,bottom){//takes start node, end node, iteration, top left node, bottom right node
+		if(start.col<top.col||start.row<top.row||start.col>end.col||start.row>end.row||nodes[start.row][start.col]!=0)
+			return undefined;
+		nodes[start.row][start.col]=iter;
+		if(start.row==end.row&&start.col==end.col)
+			return 0;
+		var rand = new Rand();
+		var x;
 		do{
-			move = genRandom();
-		}
-		while(!validMove(move));
-		step++;debugger;
-		switch(move){
-			case 0://move right
-				current.col++;
-				break;
-			case 1://move down
-				current.row++;
-				break;
-			case 2://move left
-				current.col--;
-				break;
-			case 3://move up
-				current.row--;
-				break;
-		}
-		console.log(move,current!=destination,current);
-		nodes[current.row][current.col]=step;
-		console.log(nodes);
+			var copy = new node();
+			copy.col = start.col;
+			copy.row = start.row;
+			x = rand.get();
+			switch(x){
+				case 0://if right
+					copy.col++;
+					break;
+				case 1://if down
+					copy.row++;
+					break;
+				case 2://if left
+					copy.col--;
+					break;
+				case 3://if up
+					copy.row--;
+					break;
+				default://if undefined(meaning possibilities have been exhausted for this tree)
+					//console.log("out of randoms");
+					nodes[start.row][start.col]=0;
+					return undefined;
 
-	}while(current!=destination);
+			}
+		}while(genMap(copy,end,iter+1,top,bottom) === undefined);
+		return 0;
+	};
+
+	genMap(new node(0,0),new node(width-1,length-1),1,new node(0,0),new node(width-1,length-1) );
+	console.log(nodes);
 
 }
 
