@@ -1,0 +1,50 @@
+<html>
+<head>
+	<title>Zombie Maze</title>
+</head>
+<body>
+	<script src="three.min.js"></script>
+	<script src="OrbitControls.js"></script>
+	<script src="stats.min.js"></script>
+	<script src="maze.js"></script>
+	<script src="world.js"></script>
+	<script>
+	var test = function(){
+	var container, stats;
+
+			var camera, controls, scene, renderer;
+
+			init();
+			render();
+
+			/*function animate() {
+				requestAnimationFrame(animate);
+				//controls.update();
+			}*/
+
+			function init() {
+				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1000 );
+				camera.position.z = 500;
+				controls = new THREE.OrbitControls( camera );
+				//controls.damping = 0.2;
+				controls.addEventListener( 'change', render );
+				scene = new THREE.Scene();
+				var cubeGeometry = new THREE.BoxGeometry(100, 100, 100);
+				var cubeMaterial = new THREE.MeshBasicMaterial({ color: 0x1ec876 });
+				var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+				scene.add(cube);
+				renderer = new THREE.WebGLRenderer();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.body.appendChild( renderer.domElement );
+				//animate();
+			}
+			function render() {
+				renderer.render( scene, camera );
+			}
+		}
+
+	var world = new World(new Maze(9,5));
+	//test();
+	</script>
+</body>
+</html>
